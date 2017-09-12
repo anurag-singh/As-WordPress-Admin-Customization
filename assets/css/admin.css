@@ -1,0 +1,48 @@
+#wpcontent #wpadminbar {
+	/*background-color: grey;*/
+}
+
+
+#adminmenu, #adminmenu .wp-submenu, #adminmenuback, #adminmenuwrap {
+	/*background-color: grey;*/
+}
+
+#adminmenu ul {
+	
+}
+
+#adminmenu ul li {
+	/*padding-bottom: 10px;*/
+}
+
+#adminmenu li {
+	/*border-bottom: 1px dashed #ddd;*/
+	padding: 5px 0px 5px;
+}
+
+#adminmenu li.wp-menu-separator {
+	border-bottom: 1px dashed #fff !important;
+}
+
+
+
+#adminmenu div.wp-menu-image {
+	width: 100%;
+}
+
+#adminmenu div.wp-menu-name {
+	text-align: center;
+	size: small;
+}
+
+
+
+.wp-submenu li {
+	text-align: right;
+	border-bottom: 1px solid #ddd;
+}
+
+.wp-has-current-submenu ul li {
+	border-bottom: none;
+}
+
