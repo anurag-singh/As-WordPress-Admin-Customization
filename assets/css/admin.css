@@ -1,3 +1,37 @@
+/* Admin top bar and left side menu */
+#wpadminbar, #adminmenu, #adminmenu .wp-submenu, #adminmenuback, #adminmenuwrap {
+	background: #2196F3;
+
+}
+
+/* Admin left side menu -active */
+#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head, #adminmenu .wp-menu-arrow, #adminmenu .wp-menu-arrow div, #adminmenu li.current a.menu-top, #adminmenu li.wp-has-current-submenu a.wp-has-current-submenu, .folded #adminmenu li.current.menu-top, .folded #adminmenu li.wp-has-current-submenu {
+	background: #1976D2;
+}
+
+/* Admin left side menu - open sub menu */
+#adminmenu .wp-has-current-submenu .wp-submenu, #adminmenu .wp-has-current-submenu .wp-submenu.sub-open, #adminmenu .wp-has-current-submenu.opensub .wp-submenu, #adminmenu a.wp-has-current-submenu:focus+.wp-submenu, .no-js li.wp-has-current-submenu:hover .wp-submenu {
+	background: #1565C0;
+}
+
+
+#adminmenu li.menu-top:hover, #adminmenu li.opensub>a.menu-top, #adminmenu li>a.menu-top:focus {
+	background: #64B5F6;
+}
+
+#adminmenu div.wp-menu-image:before {
+	color: #000;
+}
+
+/* Left sidebar active icon color */
+#adminmenu .current div.wp-menu-image:before, #adminmenu .wp-has-current-submenu div.wp-menu-image:before, #adminmenu a.current:hover div.wp-menu-image:before, #adminmenu a.wp-has-current-submenu:hover div.wp-menu-image:before, #adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image:before, #adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image:before, #adminmenu li.wp-has-current-submenu:hover div.wp-menu-image:before {
+	color: #212121;
+}
+
+#adminmenumain ul li a {
+	color: #000 !important;
+}
+
 #wpcontent #wpadminbar {
 	/*background-color: grey;*/
 }
@@ -8,7 +42,7 @@
 }
 
 #adminmenu ul {
-	
+
 }
 
 #adminmenu ul li {
