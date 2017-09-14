@@ -67,14 +67,14 @@ class Admin_Customization_Settings {
 		add_filter( 'login_headertitle', array($this, 'update_wp_login_logo_title' ));
 
 		// Make "remember me" as checked always
-		add_action( 'init' , array( $this, 'login_checked_remember_me' ) );		
+		add_action( 'init' , array( $this, 'login_checked_remember_me' ) );
 
-		// Redirect general user to public view 
+		// Redirect general user to public view
 		add_filter('login_redirect', array($this, 'my_loginredrect'), 10, 3);
 
 		// Remove lost your password link from login screen
 		add_filter( 'gettext', array($this, 'remove_lostpassword_text' ));
-		
+
 		// Add extra content in header of wp login screen
 		add_action('login_header',array($this, 'login_form_header'));
 
@@ -88,7 +88,7 @@ class Admin_Customization_Settings {
 
 		// Change "Howdy" Text from wp user's area
 		add_filter( 'gettext', array($this, 'change_howdy_text_from_admin_screen'), 10, 3 );
-	
+
 		// Remove widgets from wp user's dashboard
 		add_action( 'wp_dashboard_setup', array($this, 'remove_dashboard_widgets'));
 
@@ -100,14 +100,9 @@ class Admin_Customization_Settings {
 		add_filter( 'custom_menu_order', array($this, 'reorder_admin_menu' ));
 		add_filter( 'menu_order', array($this, 'reorder_admin_menu' ));
 
-	
-
-
-		
-
-
 
 	}
+
 
 	/**
 	 * Initialise settings
@@ -162,6 +157,17 @@ class Admin_Customization_Settings {
 	 * @return array Fields to be displayed on settings page
 	 */
 	private function settings_fields () {
+		// Sanitize text - replace underscore (_) with space ( ) into a string
+		function sanitize_text($str) {
+			return ucwords(str_replace("_", " ", $str));	// Uppercase and replace '_' with space(' ')
+		}
+		// Get all the post types of website
+
+		$postTypeArr = get_post_types();
+		$postTypeArr = array_merge($postTypeArr, array('all'=>'all')); 		// add 'all' as an option
+		$postTypeOptions = array_map('sanitize_text', $postTypeArr);
+		// Get all the post types of website
+
 
 		$settings['as-admin-area'] = array(
 			'title'					=> __( 'Admin Area', 'admin-customization' ),
@@ -293,7 +299,7 @@ class Admin_Customization_Settings {
 					// 'default'		=> 'https://www.google.co.in/',
 					'placeholder'	=> __( 'https://www.google.co.in/', 'admin-customization' )
 				),
-				
+
 			)
 		);
 
@@ -349,8 +355,58 @@ class Admin_Customization_Settings {
 					'default'		=> 'yourpassword',
 					'placeholder'	=> __( '*******', 'admin-customization' )
 				)
-				
-				
+
+
+			)
+		);
+
+		$settings['as-google-services'] = array(
+			'title'					=> __( 'Google Services', 'admin-customization' ),
+			'description'			=> __( 'Enable Google service on website, like - Google Webmaster, Analytics, reCAPTCHA', 'admin-customization' ),
+			'fields'				=> array(
+				array(
+					'id' 			=> 'ga_webmaster',
+					'label'			=> __( 'Webmaster' , 'admin-customization' ),
+					'description'	=> __( 'xxxxxxxxxxxxxxxx', 'admin-customization' ),
+					'type'			=> 'text',
+					//'default'		=> 'no-reply@domainname.com',
+					'placeholder'	=> __( 'xxxxxxxxxxxxxxxx', 'admin-customization' )
+				)
+				,array(
+					'id' 			=> 'ga_analytics',
+					'label'			=> __( 'Analytics' , 'admin-customization' ),
+					'description'	=> __( 'UA-60XXXXX3-X', 'admin-customization' ),
+					'type'			=> 'text',
+					//'default'		=> 'Your Name',
+					'placeholder'	=> __( 'UA-60XXXXX3-X', 'admin-customization' )
+				)
+				,array(
+					'id' 			=> 'ga_recaptcha',
+					'label'			=> __( 'reCAPTCHA' , 'admin-customization' ),
+					'description'	=> __( 'xxxxxxxxxxxxxxxxxx', 'admin-customization' ),
+					'type'			=> 'text',
+					//'default'		=> 'yourdomain.com',
+					'placeholder'	=> __( 'xxxxxxxxxxxxxxxxxx', 'admin-customization' )
+				)
+
+			)
+		);
+
+		$settings['as-comments'] = array(
+			'title'					=> __( 'Comments', 'admin-customization' ),
+			'description'			=> __( 'Disable comments from any specific post type or all over the site', 'admin-customization' ),
+			'fields'				=> array(
+				array(
+					'id' 			=> 'hide_comments_for_post_types',
+					'label'			=> __( 'All Post Types', 'wordpress-plugin-template' ),
+					'description'	=> __( '<br>Select "<strong>All</strong>", if want to remove comments from whole website. <br>You can select multiple post type items and comments will be hide from that specific "post type"', 'wordpress-plugin-template' ),
+					'type'			=> 'select_multi',
+					// 'options'		=> array( 'square' => 'Square', 'circle' => 'Circle', 'rectangle' => 'Rectangle', 'triangle' => 'Triangle' ),
+					'options'		=> $postTypeOptions, // get all post types
+					'default'		=> array( 'post' )
+				)
+
+
 			)
 		);
 
@@ -519,19 +575,19 @@ class Admin_Customization_Settings {
 	function custom_login_stylesheet() {
 	    wp_enqueue_style( 'custom-login', plugin_dir_url(__FILE__) . '../assets/css/frontend.css' );
 	}
-	
+
 
 	/*
 	 * Change logo of WP login Screen
 	 */
-	function custom_login_logo() { 
+	function custom_login_logo() {
 		$devLogo = get_site_option('admin_customization_developer_logo_image');
 
-	    		
+
 		?>
 	    <style type="text/css">
 	        #login h1 a, .login h1 a {
-	        	/*height:150px; 
+	        	/*height:150px;
 	        	width:auto;
 	            background-size:auto; */
 	            background-position: center center;
@@ -539,13 +595,13 @@ class Admin_Customization_Settings {
 	        }
 	    </style>
 	<?php }
-	
+
 	 /*
 	 * Change logo URL on WP login Screen
 	 */
 	public function update_wp_login_logo_url() {
 		// return get_bloginfo( 'url' );
-		return esc_html(get_site_option('admin_customization_developer_logo_url')); 
+		return esc_html(get_site_option('admin_customization_developer_logo_url'));
 	}
 
 	/*
@@ -553,7 +609,7 @@ class Admin_Customization_Settings {
 	 */
 	public function update_wp_login_logo_title() {
 		// return get_bloginfo('name');
-		return get_site_option('admin_customization_developer_logo_title'); 
+		return get_site_option('admin_customization_developer_logo_title');
 	}
 
 	/*
@@ -562,7 +618,7 @@ class Admin_Customization_Settings {
 	public function login_checked_remember_me() {
 		add_filter( 'login_footer', array($this, 'rememberme_checked') );
 	}
-	
+
 	public function rememberme_checked() {
 		echo "<script>document.getElementById('rememberme').checked = true;</script>";
 	}
@@ -582,7 +638,7 @@ class Admin_Customization_Settings {
 		      	return site_url();
 		  }
 	}
-	 
+
 	/*
 	 * Remove Lost Password link from login screen
 	 */
@@ -612,7 +668,7 @@ class Admin_Customization_Settings {
 	*/
 	public function login_form_footer() { ?>
 	    <div class="wp-login-footer-wrapper">
-	    	<?php 
+	    	<?php
 	    		$devContactNo = get_site_option('admin_customization_developer_contact_no');
 	    		$devEmail = get_site_option('admin_customization_developer_email');
 	    		$devWebsite = get_site_option('admin_customization_developer_website');
@@ -664,19 +720,19 @@ class Admin_Customization_Settings {
 		remove_meta_box( 'dashboard_plugins',       'dashboard', 'normal' );    //Plugins
 
 	}
-	
+
 
 	/*
 	 *  Add additional fields in WP User's profile
 	 * To display in front end - "echo $curauth->twitter;"
-	 */ 
+	 */
 	public function add_new_fields_in_user_profile( $user_contact ) {
 
 		// Add user contact methods
 		$user_contact['contact_no'] = 'Contact No.';
 		$user_contact['twitter'] = 'Twitter';
 		$user_contact['facebook'] = 'Facebook';
- 
+
 		return $user_contact;
 	}
 
@@ -684,16 +740,16 @@ class Admin_Customization_Settings {
 
 	/*
 	 * Re-arrange in wp admin menu
-	 */	
+	 */
 	function reorder_admin_menu( $__return_true ) {
 	    return array(
-	         'edit.php?post_type=page', // Pages 
+	         'edit.php?post_type=page', // Pages
 	         'edit.php', // Posts
 	         'upload.php', // Media
 	         'separator1', // --Space--
 	         'index.php', // Dashboard
 	         'themes.php', // Appearance
-	         'edit-comments.php', // Comments 
+	         'edit-comments.php', // Comments
 	         'separator2', // --Space--
 	         'plugins.php', // Plugins
 	         //'separator3', // --Space--
@@ -704,5 +760,5 @@ class Admin_Customization_Settings {
 	}
 
 
-	
+
 }
