@@ -101,6 +101,14 @@ class Admin_Customization_Settings {
 		add_filter( 'menu_order', array($this, 'reorder_admin_menu' ));
 
 
+		add_action('init', array($this, 'as_hide_comments'));
+
+
+		add_action('wp_head', array($this, 'blog_favicon'));
+		add_action( 'admin_head', array($this, 'blog_favicon' ));
+		add_action('login_head', array($this, 'blog_favicon'));
+
+
 	}
 
 
@@ -169,76 +177,6 @@ class Admin_Customization_Settings {
 		// Get all the post types of website
 
 
-		$settings['as-admin-area'] = array(
-			'title'					=> __( 'Admin Area', 'admin-customization' ),
-			'description'			=> __( 'These are fairly standard form input fields.', 'admin-customization' ),
-			'fields'				=> array(
-				array(
-					'id' 			=> 'text_field',
-					'label'			=> __( 'Some Text' , 'admin-customization' ),
-					'description'	=> __( 'This is a standard text field.', 'admin-customization' ),
-					'type'			=> 'text',
-					'default'		=> '',
-					'placeholder'	=> __( 'Placeholder text', 'admin-customization' )
-				),
-				array(
-					'id' 			=> 'password_field',
-					'label'			=> __( 'A Password' , 'admin-customization' ),
-					'description'	=> __( 'This is a standard password field.', 'admin-customization' ),
-					'type'			=> 'password',
-					'default'		=> '',
-					'placeholder'	=> __( 'Placeholder text', 'admin-customization' )
-				),
-				array(
-					'id' 			=> 'secret_text_field',
-					'label'			=> __( 'Some Secret Text' , 'admin-customization' ),
-					'description'	=> __( 'This is a secret text field - any data saved here will not be displayed after the page has reloaded, but it will be saved.', 'admin-customization' ),
-					'type'			=> 'text_secret',
-					'default'		=> '',
-					'placeholder'	=> __( 'Placeholder text', 'admin-customization' )
-				),
-				array(
-					'id' 			=> 'text_block',
-					'label'			=> __( 'A Text Block' , 'admin-customization' ),
-					'description'	=> __( 'This is a standard text area.', 'admin-customization' ),
-					'type'			=> 'textarea',
-					'default'		=> '',
-					'placeholder'	=> __( 'Placeholder text for this textarea', 'admin-customization' )
-				),
-				array(
-					'id' 			=> 'single_checkbox',
-					'label'			=> __( 'An Option', 'admin-customization' ),
-					'description'	=> __( 'A standard checkbox - if you save this option as checked then it will store the option as \'on\', otherwise it will be an empty string.', 'admin-customization' ),
-					'type'			=> 'checkbox',
-					'default'		=> ''
-				),
-				array(
-					'id' 			=> 'select_box',
-					'label'			=> __( 'A Select Box', 'admin-customization' ),
-					'description'	=> __( 'A standard select box.', 'admin-customization' ),
-					'type'			=> 'select',
-					'options'		=> array( 'drupal' => 'Drupal', 'joomla' => 'Joomla', 'wordpress' => 'WordPress' ),
-					'default'		=> 'wordpress'
-				),
-				array(
-					'id' 			=> 'radio_buttons',
-					'label'			=> __( 'Some Options', 'admin-customization' ),
-					'description'	=> __( 'A standard set of radio buttons.', 'admin-customization' ),
-					'type'			=> 'radio',
-					'options'		=> array( 'superman' => 'Superman', 'batman' => 'Batman', 'ironman' => 'Iron Man' ),
-					'default'		=> 'batman'
-				),
-				array(
-					'id' 			=> 'multiple_checkboxes',
-					'label'			=> __( 'Some Items', 'admin-customization' ),
-					'description'	=> __( 'You can select multiple items and they will be stored as an array.', 'admin-customization' ),
-					'type'			=> 'checkbox_multi',
-					'options'		=> array( 'square' => 'Square', 'circle' => 'Circle', 'rectangle' => 'Rectangle', 'triangle' => 'Triangle' ),
-					'default'		=> array( 'circle', 'triangle' )
-				)
-			)
-		);
-
 		$settings['as-login-customization'] = array(
 			'title'					=> __( 'Login Screen', 'admin-customization' ),
 			'description'			=> __( 'These are some extra input fields that maybe aren\'t as common as the others.', 'admin-customization' ),
@@ -299,6 +237,24 @@ class Admin_Customization_Settings {
 					// 'default'		=> 'https://www.google.co.in/',
 					'placeholder'	=> __( 'https://www.google.co.in/', 'admin-customization' )
 				),
+
+			)
+		);
+
+		$settings['as-comments'] = array(
+			'title'					=> __( 'Comments', 'admin-customization' ),
+			'description'			=> __( 'Disable comments from any specific post type or all over the site', 'admin-customization' ),
+			'fields'				=> array(
+				array(
+					'id' 			=> 'hide_comments_for_post_types',
+					'label'			=> __( 'All Post Types', 'wordpress-plugin-template' ),
+					'description'	=> __( '<br>Select "<strong>All</strong>", if want to remove comments from whole website. <br>You can select multiple post type items and comments will be hide from that specific "post type"', 'wordpress-plugin-template' ),
+					'type'			=> 'select_multi',
+					// 'options'		=> array( 'square' => 'Square', 'circle' => 'Circle', 'rectangle' => 'Rectangle', 'triangle' => 'Triangle' ),
+					'options'		=> $postTypeOptions, // get all post types
+					'default'		=> array( 'post' )
+				)
+
 
 			)
 		);
@@ -381,8 +337,16 @@ class Admin_Customization_Settings {
 					'placeholder'	=> __( 'UA-60XXXXX3-X', 'admin-customization' )
 				)
 				,array(
-					'id' 			=> 'ga_recaptcha',
-					'label'			=> __( 'reCAPTCHA' , 'admin-customization' ),
+					'id' 			=> 'ga_recaptcha_site_key',
+					'label'			=> __( 'reCAPTCHA - (Site key)' , 'admin-customization' ),
+					'description'	=> __( 'xxxxxxxxxxxxxxxxxx', 'admin-customization' ),
+					'type'			=> 'text',
+					//'default'		=> 'yourdomain.com',
+					'placeholder'	=> __( 'xxxxxxxxxxxxxxxxxx', 'admin-customization' )
+				)
+				,array(
+					'id' 			=> 'ga_recaptcha_secret_key',
+					'label'			=> __( 'reCAPTCHA - (Secret key)' , 'admin-customization' ),
 					'description'	=> __( 'xxxxxxxxxxxxxxxxxx', 'admin-customization' ),
 					'type'			=> 'text',
 					//'default'		=> 'yourdomain.com',
@@ -392,21 +356,96 @@ class Admin_Customization_Settings {
 			)
 		);
 
-		$settings['as-comments'] = array(
-			'title'					=> __( 'Comments', 'admin-customization' ),
-			'description'			=> __( 'Disable comments from any specific post type or all over the site', 'admin-customization' ),
+		$settings['as-others'] = array(
+			'title'					=> __( 'Others', 'admin-customization' ),
+			'description'			=> __( 'Other important customizations.', 'admin-customization' ),
 			'fields'				=> array(
 				array(
-					'id' 			=> 'hide_comments_for_post_types',
-					'label'			=> __( 'All Post Types', 'wordpress-plugin-template' ),
-					'description'	=> __( '<br>Select "<strong>All</strong>", if want to remove comments from whole website. <br>You can select multiple post type items and comments will be hide from that specific "post type"', 'wordpress-plugin-template' ),
-					'type'			=> 'select_multi',
-					// 'options'		=> array( 'square' => 'Square', 'circle' => 'Circle', 'rectangle' => 'Rectangle', 'triangle' => 'Triangle' ),
-					'options'		=> $postTypeOptions, // get all post types
-					'default'		=> array( 'post' )
+					'id' 			=> 'favicon',
+					'label'			=> __( 'Favicon' , 'admin-customization' ),
+					'description'	=> __( 'Add favicon here and it will display all over the website', 'admin-customization' ),
+					'type'			=> 'image',
+					//'default'		=> 'no-reply@domainname.com',
+					//'placeholder'	=> __( 'no-reply@domainname.com', 'admin-customization' )
 				)
+				// ,array(
+				// 	'id' 			=> 'from_email_name',
+				// 	'label'			=> __( 'Email Send By' , 'admin-customization' ),
+				// 	'description'	=> __( 'Your Name', 'admin-customization' ),
+				// 	'type'			=> 'text',
+				// 	'default'		=> 'Your Name',
+				// 	'placeholder'	=> __( 'Your Name', 'admin-customization' )
+				// )
+			)
+		);
 
-
+		$settings['as-admin-area'] = array(
+			'title'					=> __( 'Admin Area', 'admin-customization' ),
+			'description'			=> __( 'These are fairly standard form input fields.', 'admin-customization' ),
+			'fields'				=> array(
+				array(
+					'id' 			=> 'text_field',
+					'label'			=> __( 'Some Text' , 'admin-customization' ),
+					'description'	=> __( 'This is a standard text field.', 'admin-customization' ),
+					'type'			=> 'text',
+					'default'		=> '',
+					'placeholder'	=> __( 'Placeholder text', 'admin-customization' )
+				),
+				array(
+					'id' 			=> 'password_field',
+					'label'			=> __( 'A Password' , 'admin-customization' ),
+					'description'	=> __( 'This is a standard password field.', 'admin-customization' ),
+					'type'			=> 'password',
+					'default'		=> '',
+					'placeholder'	=> __( 'Placeholder text', 'admin-customization' )
+				),
+				array(
+					'id' 			=> 'secret_text_field',
+					'label'			=> __( 'Some Secret Text' , 'admin-customization' ),
+					'description'	=> __( 'This is a secret text field - any data saved here will not be displayed after the page has reloaded, but it will be saved.', 'admin-customization' ),
+					'type'			=> 'text_secret',
+					'default'		=> '',
+					'placeholder'	=> __( 'Placeholder text', 'admin-customization' )
+				),
+				array(
+					'id' 			=> 'text_block',
+					'label'			=> __( 'A Text Block' , 'admin-customization' ),
+					'description'	=> __( 'This is a standard text area.', 'admin-customization' ),
+					'type'			=> 'textarea',
+					'default'		=> '',
+					'placeholder'	=> __( 'Placeholder text for this textarea', 'admin-customization' )
+				),
+				array(
+					'id' 			=> 'single_checkbox',
+					'label'			=> __( 'An Option', 'admin-customization' ),
+					'description'	=> __( 'A standard checkbox - if you save this option as checked then it will store the option as \'on\', otherwise it will be an empty string.', 'admin-customization' ),
+					'type'			=> 'checkbox',
+					'default'		=> ''
+				),
+				array(
+					'id' 			=> 'select_box',
+					'label'			=> __( 'A Select Box', 'admin-customization' ),
+					'description'	=> __( 'A standard select box.', 'admin-customization' ),
+					'type'			=> 'select',
+					'options'		=> array( 'drupal' => 'Drupal', 'joomla' => 'Joomla', 'wordpress' => 'WordPress' ),
+					'default'		=> 'wordpress'
+				),
+				array(
+					'id' 			=> 'radio_buttons',
+					'label'			=> __( 'Some Options', 'admin-customization' ),
+					'description'	=> __( 'A standard set of radio buttons.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'superman' => 'Superman', 'batman' => 'Batman', 'ironman' => 'Iron Man' ),
+					'default'		=> 'batman'
+				),
+				array(
+					'id' 			=> 'multiple_checkboxes',
+					'label'			=> __( 'Some Items', 'admin-customization' ),
+					'description'	=> __( 'You can select multiple items and they will be stored as an array.', 'admin-customization' ),
+					'type'			=> 'checkbox_multi',
+					'options'		=> array( 'square' => 'Square', 'circle' => 'Circle', 'rectangle' => 'Rectangle', 'triangle' => 'Triangle' ),
+					'default'		=> array( 'circle', 'triangle' )
+				)
 			)
 		);
 
@@ -600,16 +639,23 @@ class Admin_Customization_Settings {
 	 * Change logo URL on WP login Screen
 	 */
 	public function update_wp_login_logo_url() {
-		// return get_bloginfo( 'url' );
-		return esc_html(get_site_option('admin_customization_developer_logo_url'));
+		$loginLogoUrl = get_site_option('admin_customization_developer_logo_url');
+		if (empty($loginLogoUrl)) {
+			$loginLogoUrl = get_bloginfo('url');
+		}
+
+		return esc_html($loginLogoUrl);
 	}
 
 	/*
 	 * Change logo URL on WP login Title
 	 */
 	public function update_wp_login_logo_title() {
-		// return get_bloginfo('name');
-		return get_site_option('admin_customization_developer_logo_title');
+		$loginLogoTitle = get_site_option('admin_customization_developer_logo_title');
+		if (empty($loginLogoTitle)) {
+			$loginLogoTitle = get_bloginfo('name');
+		}
+		return $loginLogoTitle;
 	}
 
 	/*
@@ -670,11 +716,23 @@ class Admin_Customization_Settings {
 	    <div class="wp-login-footer-wrapper">
 	    	<?php
 	    		$devContactNo = get_site_option('admin_customization_developer_contact_no');
+	    		if(empty($devContactNo)){
+	    			$devContactNo = "0000-000-000";
+	    		}
+	    		$devContactNoHref = trim(str_replace(array('-', ' '), '', $devContactNo)); // Sanitize contact no to href
+
 	    		$devEmail = get_site_option('admin_customization_developer_email');
+	    		if(empty($devEmail)){
+	    			$devEmail = get_option('admin_email');
+	    		}
+
 	    		$devWebsite = get_site_option('admin_customization_developer_website');
+	    		if(empty($devWebsite)){
+	    			$devWebsite = get_bloginfo('url');
+	    		}
 	    	?>
 		    <ul>
-		    	<li>Phone : <a href="tel:<?php echo $devContactNo; ?>"><?php echo $devContactNo ?></a></li>
+		    	<li>Phone : <a href="tel:<?php echo $devContactNoHref; ?>"><?php echo $devContactNo ?></a></li>
 		    	<li>Email : <a href="mailto:<?php echo $devEmail; ?>"><?php echo $devEmail; ?></a></li>
 		    	<li>Website : <a href="<?php echo $devWebsite; ?>"><?php echo $devWebsite; ?></a></li>
 		    </ul>
@@ -758,6 +816,89 @@ class Admin_Customization_Settings {
 	         'options-general.php', // Settings
 	   );
 	}
+
+
+
+	/* Remove Comments */
+	public function get_all_selected_posts () {
+		$post_types = get_option($this->base.'hide_comments_for_post_types');
+		return $post_types;
+	}
+
+	public function as_hide_comments() {
+		add_action('admin_init', array($this, 'disable_comments_post_types_support'));
+		$post_types = $this->get_all_selected_posts();
+
+		if(in_array('all', $post_types)){
+			add_filter('comments_open', array($this, 'disable_comments_status', 20, 2));
+			add_filter('pings_open', array($this, 'disable_comments_status', 20, 2));
+			add_filter('comments_array', array($this, 'disable_comments_hide_existing_comments', 10, 2));
+			add_action('admin_menu', array($this, 'disable_comments_admin_menu'));
+			add_action('admin_init', array($this, 'disable_comments_admin_menu_redirect'));
+			add_action('admin_init', array($this, 'disable_comments_dashboard'));
+			add_action('init', array($this, 'disable_comments_admin_bar'));
+			add_action( 'wp_before_admin_bar_render', array($this, 'admin_bar_render' ));
+		}
+
+	}
+
+	// Disable support for comments and trackbacks in post types
+	function disable_comments_post_types_support() {
+		//$post_types = get_post_types();
+		$post_types = get_option('admin_customization_hide_comments_for_post_types');
+		foreach ($post_types as $post_type) {
+			if(post_type_supports($post_type, 'comments')) {
+				remove_post_type_support($post_type, 'comments');
+				remove_post_type_support($post_type, 'trackbacks');
+			}
+		}
+	}
+	// Close comments on the front-end
+	function disable_comments_status() {
+		return false;
+	}
+	// Hide existing comments
+	function disable_comments_hide_existing_comments($comments) {
+		$comments = array();
+		return $comments;
+	}
+	// Remove comments page in menu
+	function disable_comments_admin_menu() {
+		remove_menu_page('edit-comments.php');
+	}
+	// Redirect any user trying to access comments page
+	function disable_comments_admin_menu_redirect() {
+		global $pagenow;
+		if ($pagenow === 'edit-comments.php') {
+			wp_redirect(admin_url()); exit;
+		}
+	}
+	// Remove comments metabox from dashboard
+	function disable_comments_dashboard() {
+		remove_meta_box('dashboard_recent_comments', 'dashboard', 'normal');
+	}
+	// Remove comments links from admin bar
+	function disable_comments_admin_bar() {
+			if (is_admin_bar_showing()) {
+					remove_action('admin_bar_menu', 'wp_admin_bar_comments_menu', 60);
+			}
+	}
+	function admin_bar_render() {
+		global $wp_admin_bar;
+		$wp_admin_bar->remove_menu('comments');
+	}
+	/* Remove Comments */
+
+	/* Add Favicon */
+	function blog_favicon() {
+		$faviconImgId = get_option('admin_customization_favicon');
+
+		if (!empty($faviconImgId)) {
+			$faviconUrl = array_shift(wp_get_attachment_image_src($faviconImgId));
+			echo '<link rel="shortcut icon"  href="' . $faviconUrl .'" />';
+		}
+	}
+	/* Add Favicon */
 
 
 
