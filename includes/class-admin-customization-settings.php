@@ -100,13 +100,25 @@ class Admin_Customization_Settings {
 		add_filter( 'custom_menu_order', array($this, 'reorder_admin_menu' ));
 		add_filter( 'menu_order', array($this, 'reorder_admin_menu' ));
 
-
+		// Remove comments support
 		add_action('init', array($this, 'as_hide_comments'));
 
+		add_action('init', array($this, 'disable_updates'));
 
+		add_action('init', array($this, 'send_email_through_smtp'));
+
+		// Add favicon
 		add_action('wp_head', array($this, 'blog_favicon'));
 		add_action( 'admin_head', array($this, 'blog_favicon' ));
 		add_action('login_head', array($this, 'blog_favicon'));
+
+		// // Remove update avilable notice
+		// remove_action('load-update-core.php', array($this, 'wp_update_plugins'));
+		// add_filter('pre_site_transient_update_plugins','__return_null');
+		// add_action('admin_menu', array($this, 'wphidenag'));
+		// add_filter('pre_site_transient_update_core', array($this, 'remove_core_updates'));
+		// add_filter('pre_site_transient_update_plugins', array($this, 'remove_core_updates'));
+		// add_filter('pre_site_transient_update_themes', array($this, 'remove_core_updates'));
 
 
 	}
@@ -264,6 +276,14 @@ class Admin_Customization_Settings {
 			'description'			=> __( 'Setup SMTP details for emails.', 'admin-customization' ),
 			'fields'				=> array(
 				array(
+					'id' 			=> 'smtp_enable',
+					'label'			=> __( 'Enable SMTP', 'admin-customization' ),
+					'description'	=> __( 'Enable or disable SMTP support.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'yes' => 'Yes', 'no' => 'No'),
+					'default'		=> 'no'
+				),
+				array(
 					'id' 			=> 'from_email_id',
 					'label'			=> __( 'Email Comes From' , 'admin-customization' ),
 					'description'	=> __( 'no-reply@domainname.com', 'admin-customization' ),
@@ -294,6 +314,14 @@ class Admin_Customization_Settings {
 					'type'			=> 'number',
 					'default'		=> '25',
 					'placeholder'	=> __( '25', 'admin-customization' )
+				)
+				,array(
+					'id' 			=> 'smtp_secure',
+					'label'			=> __( 'Disable Updates Notifications', 'admin-customization' ),
+					'description'	=> __( 'Choose SSL or TLS, if necessary for your server, Themes & Plugins.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'SSL' => 'SSL', 'TLS' => 'TLS'),
+					'default'		=> 'TLS'
 				)
 				,array(
 					'id' 			=> 'smtp_username',
@@ -367,15 +395,15 @@ class Admin_Customization_Settings {
 					'type'			=> 'image',
 					//'default'		=> 'no-reply@domainname.com',
 					//'placeholder'	=> __( 'no-reply@domainname.com', 'admin-customization' )
-				)
-				// ,array(
-				// 	'id' 			=> 'from_email_name',
-				// 	'label'			=> __( 'Email Send By' , 'admin-customization' ),
-				// 	'description'	=> __( 'Your Name', 'admin-customization' ),
-				// 	'type'			=> 'text',
-				// 	'default'		=> 'Your Name',
-				// 	'placeholder'	=> __( 'Your Name', 'admin-customization' )
-				// )
+				),
+				array(
+					'id' 			=> 'disable_updates_notifications',
+					'label'			=> __( 'Disable Updates Notifications', 'admin-customization' ),
+					'description'	=> __( 'Disable "Updates Avilable" Notifications for Wordpress Core, Themes & Plugins.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'no' => 'No', 'yes' => 'Yes'),
+					'default'		=> 'no'
+				),
 			)
 		);
 
@@ -620,17 +648,21 @@ class Admin_Customization_Settings {
 	 * Change logo of WP login Screen
 	 */
 	function custom_login_logo() {
-		$devLogo = get_site_option('admin_customization_developer_logo_image');
-
-
+		$devLogoId = get_site_option($this->base.'developer_logo_image');
+		if(empty($devLogoId)) {
+			return;
+		}
+		$devLogoUrl = array_shift(wp_get_attachment_image_src($devLogoId, 'full' ));
 		?>
 	    <style type="text/css">
 	        #login h1 a, .login h1 a {
-	        	/*height:150px;
+	        	/*height:150px;*/
 	        	width:auto;
-	            background-size:auto; */
+	            background-size:auto;
 	            background-position: center center;
-	            background-image: url(<?php echo plugin_dir_url( __FILE__ ); ?>../assets/images/site-logo.jpg);
+	            background-image: url(<?php echo $devLogoUrl ?>);
+	            background-color: #fff;
+	            box-shadow: 0 -8px 6px -6px black;
 	        }
 	    </style>
 	<?php }
@@ -639,7 +671,7 @@ class Admin_Customization_Settings {
 	 * Change logo URL on WP login Screen
 	 */
 	public function update_wp_login_logo_url() {
-		$loginLogoUrl = get_site_option('admin_customization_developer_logo_url');
+		$loginLogoUrl = get_site_option($this->base.'developer_logo_url');
 		if (empty($loginLogoUrl)) {
 			$loginLogoUrl = get_bloginfo('url');
 		}
@@ -651,7 +683,7 @@ class Admin_Customization_Settings {
 	 * Change logo URL on WP login Title
 	 */
 	public function update_wp_login_logo_title() {
-		$loginLogoTitle = get_site_option('admin_customization_developer_logo_title');
+		$loginLogoTitle = get_site_option($this->base.'developer_logo_title');
 		if (empty($loginLogoTitle)) {
 			$loginLogoTitle = get_bloginfo('name');
 		}
@@ -700,9 +732,8 @@ class Admin_Customization_Settings {
 	*/
 	public function login_form_header() { ?>
 	    <div class="wp-login-header-wrapper">
-	    	<!-- <a href="http://anuragsingh.me/">For the latest tips & tricks, visit my website!</a> -->
 		    <h2>
-		    	<a href="#">Anurag Singh</a>
+		    	<!-- <a href="#">Anurag Singh</a> -->
 		    </h2>
 
 	    </div>
@@ -715,18 +746,18 @@ class Admin_Customization_Settings {
 	public function login_form_footer() { ?>
 	    <div class="wp-login-footer-wrapper">
 	    	<?php
-	    		$devContactNo = get_site_option('admin_customization_developer_contact_no');
+	    		$devContactNo = get_site_option($this->base.'developer_contact_no');
 	    		if(empty($devContactNo)){
 	    			$devContactNo = "0000-000-000";
 	    		}
 	    		$devContactNoHref = trim(str_replace(array('-', ' '), '', $devContactNo)); // Sanitize contact no to href
 
-	    		$devEmail = get_site_option('admin_customization_developer_email');
+	    		$devEmail = get_site_option($this->base.'developer_email');
 	    		if(empty($devEmail)){
 	    			$devEmail = get_option('admin_email');
 	    		}
 
-	    		$devWebsite = get_site_option('admin_customization_developer_website');
+	    		$devWebsite = get_site_option($this->base.'developer_website');
 	    		if(empty($devWebsite)){
 	    			$devWebsite = get_bloginfo('url');
 	    		}
@@ -845,7 +876,7 @@ class Admin_Customization_Settings {
 	// Disable support for comments and trackbacks in post types
 	function disable_comments_post_types_support() {
 		//$post_types = get_post_types();
-		$post_types = get_option('admin_customization_hide_comments_for_post_types');
+		$post_types = get_option($this->base.'hide_comments_for_post_types');
 		foreach ($post_types as $post_type) {
 			if(post_type_supports($post_type, 'comments')) {
 				remove_post_type_support($post_type, 'comments');
@@ -887,11 +918,12 @@ class Admin_Customization_Settings {
 		global $wp_admin_bar;
 		$wp_admin_bar->remove_menu('comments');
 	}
+
 	/* Remove Comments */
 
 	/* Add Favicon */
 	function blog_favicon() {
-		$faviconImgId = get_option('admin_customization_favicon');
+		$faviconImgId = get_option($this->base.'favicon');
 
 		if (!empty($faviconImgId)) {
 			$faviconUrl = array_shift(wp_get_attachment_image_src($faviconImgId));
@@ -899,24 +931,60 @@ class Admin_Customization_Settings {
 		}
 	}
 	/* Add Favicon */
-	
-	/* Disable Notification */
-remove_action('load-update-core.php','wp_update_plugins');
-add_filter('pre_site_transient_update_plugins','__return_null');
 
-add_action('admin_menu','wphidenag');
-function wphidenag() {
-remove_action( 'admin_notices', 'update_nag', 3 );
-}
 
-function remove_core_updates(){
-global $wp_version;return(object) array('last_checked'=> time(),'version_checked'=> $wp_version,);
-}
-add_filter('pre_site_transient_update_core','remove_core_updates');
-add_filter('pre_site_transient_update_plugins','remove_core_updates');
-add_filter('pre_site_transient_update_themes','remove_core_updates');
-/* Disable Notification */
+	/* Disable Updates Notification */
+	function disable_updates() {
+		$disableUpdates = get_option($this->base.'disable_updates_notifications');
+		if ($disableUpdates == 'yes') {
+			remove_action('load-update-core.php', 'wp_update_plugins');
+			add_filter('pre_site_transient_update_plugins', '__return_null');
+			remove_action( 'admin_notices', 'update_nag', 3 );
+			add_filter('pre_site_transient_update_core', array($this, 'remove_core_updates'));
+			add_filter('pre_site_transient_update_plugins', array($this, 'remove_core_updates'));
+			add_filter('pre_site_transient_update_themes', array($this, 'remove_core_updates'));
 
+		}
+	}
+
+	function remove_core_updates(){
+		global $wp_version;return(object) array('last_checked'=> time(),'version_checked'=> $wp_version,);
+	}
+
+	// PHP Mailer
+	function send_email_through_smtp() {
+		$smtpSupport = get_option( $this->base.'smtp_enable');
+
+		if($smtpSupport == 'yes') {
+
+			$smtpHost = get_option($this->base.'smtp_host');
+			$smtpPort = get_option($this->base.'smtp_port');
+			$smtpUserName = get_option($this->base.'smtp_username');
+			$smtpPassword = get_option($this->base.'smtp_password');
+
+			$smtpSecure = get_option($this->base.'smtp_secure');
+			$senderEmailId = get_option($this->base.'from_email_id');
+			$senderName = get_option($this->base.'from_email_name');
+
+			add_action( 'phpmailer_init', $this->use_phpmailer );
+		}
+	}
+
+
+	function use_phpmailer( $phpmailer ) {
+	    $phpmailer->isSMTP();
+	    $phpmailer->Host = $smtpHost;
+	    $phpmailer->SMTPAuth = true; // Force it to use Username and Password to authenticate
+	    $phpmailer->Port = $smtpPort;
+	    $phpmailer->Username = $smtpUserName;
+	    $phpmailer->Password = $smtpPassword;
+
+	    // Additional settings…
+	    //$phpmailer->SMTPSecure = "tls"; // Choose SSL or TLS, if necessary for your server
+	    $phpmailer->SMTPSecure = $smtpSecure; // Choose SSL or TLS, if necessary for your server
+	    $phpmailer->From = $senderEmailId;
+	    $phpmailer->FromName = $senderName;
+	}
 
 
 }
