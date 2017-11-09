@@ -317,10 +317,10 @@ class Admin_Customization_Settings {
 				)
 				,array(
 					'id' 			=> 'smtp_secure',
-					'label'			=> __( 'Disable Updates Notifications', 'admin-customization' ),
+					'label'			=> __( 'SMTP Secure', 'admin-customization' ),
 					'description'	=> __( 'Choose SSL or TLS, if necessary for your server, Themes & Plugins.', 'admin-customization' ),
 					'type'			=> 'radio',
-					'options'		=> array( 'SSL' => 'SSL', 'TLS' => 'TLS'),
+					'options'		=> array( 'False' => 'False', 'SSL' => 'SSL', 'TLS' => 'TLS'),
 					'default'		=> 'TLS'
 				)
 				,array(
@@ -857,13 +857,18 @@ class Admin_Customization_Settings {
 	}
 
 	public function as_hide_comments() {
-		add_action('admin_init', array($this, 'disable_comments_post_types_support'));
+		add_action('admin_init', array($this, 'disable_comments_post_types_support'), 10, 3);
 		$post_types = $this->get_all_selected_posts();
 
+		if(empty($post_types)) {
+			$post_types = array();
+		}
+
+
 		if(in_array('all', $post_types)){
-			add_filter('comments_open', array($this, 'disable_comments_status', 20, 2));
-			add_filter('pings_open', array($this, 'disable_comments_status', 20, 2));
-			add_filter('comments_array', array($this, 'disable_comments_hide_existing_comments', 10, 2));
+			add_filter('comments_open', array($this, 'disable_comments_status'), 20, 2);
+			add_filter('pings_open', array($this, 'disable_comments_status'), 20, 2);
+			add_filter('comments_array', array($this, 'disable_comments_hide_existing_comments'), 10, 2);
 			add_action('admin_menu', array($this, 'disable_comments_admin_menu'));
 			add_action('admin_init', array($this, 'disable_comments_admin_menu_redirect'));
 			add_action('admin_init', array($this, 'disable_comments_dashboard'));
@@ -877,12 +882,17 @@ class Admin_Customization_Settings {
 	function disable_comments_post_types_support() {
 		//$post_types = get_post_types();
 		$post_types = get_option($this->base.'hide_comments_for_post_types');
+		if(empty($post_types)) {
+			return;
+		}
+
 		foreach ($post_types as $post_type) {
 			if(post_type_supports($post_type, 'comments')) {
 				remove_post_type_support($post_type, 'comments');
 				remove_post_type_support($post_type, 'trackbacks');
 			}
 		}
+
 	}
 	// Close comments on the front-end
 	function disable_comments_status() {
