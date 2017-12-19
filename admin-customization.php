@@ -40,9 +40,23 @@ function Admin_Customization () {
 
 	if ( is_null( $instance->settings ) ) {
 		$instance->settings = Admin_Customization_Settings::instance( $instance );
+
 	}
 
 	return $instance;
 }
 
 Admin_Customization();
+
+
+// Add custom post type (CPT) - Slider
+$enableSlider = Admin_Customization()->slider_enabled;					// If Slider 'option' is enable in Admin area
+if(post_type_exists('slide') == FALSE && $enableSlider == TRUE)  {
+	Admin_Customization()->register_post_type( 'slide', __( 'Slider', 'as-admin-customization' ), __( 'Slide', 'as-admin-customization' ) );
+}
+// Add custom post type (CPT) - Slider
+
+
+
+
+// Remove Welcome Panel from WordPress Dashboard
