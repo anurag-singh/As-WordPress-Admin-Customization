@@ -56,6 +56,8 @@ class Admin_Customization_Settings {
 		// Change WP admin screen logo
 		add_action( 'login_enqueue_scripts', array($this, 'custom_login_stylesheet') );
 
+		// Change WP admin screen
+		add_action('login_head', array($this, 'custom_login_screen'));
 
 		// Change WP admin screen logo
 		add_action( 'login_enqueue_scripts', array($this, 'custom_login_logo' ));
@@ -83,6 +85,9 @@ class Admin_Customization_Settings {
 
 
 
+
+
+
 		// Remove WP logo from wp user's area
 		add_action( 'admin_bar_menu', array($this, 'remove_wp_logo_from_admin_screen'), 999 );
 
@@ -107,6 +112,8 @@ class Admin_Customization_Settings {
 
 		add_action('init', array($this, 'send_email_through_smtp'));
 
+
+
 		// Add favicon
 		add_action('wp_head', array($this, 'blog_favicon'));
 		add_action( 'admin_head', array($this, 'blog_favicon' ));
@@ -119,9 +126,22 @@ class Admin_Customization_Settings {
 		// add_filter('pre_site_transient_update_core', array($this, 'remove_core_updates'));
 		// add_filter('pre_site_transient_update_plugins', array($this, 'remove_core_updates'));
 		// add_filter('pre_site_transient_update_themes', array($this, 'remove_core_updates'));
-
+		add_action( 'admin_init', array($this,'remove_dashboard_meta' ));
 
 	}
+
+	function remove_dashboard_meta() {
+        remove_meta_box( 'dashboard_incoming_links', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_plugins', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_secondary', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_recent_drafts', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_right_now', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_activity', 'dashboard', 'normal');//since 3.8
+}
+
 
 
 	/**
@@ -344,6 +364,70 @@ class Admin_Customization_Settings {
 			)
 		);
 
+		$settings['as-slider'] = array(
+			'title'					=> __( 'Slider', 'admin-customization' ),
+			'description'			=> __( 'Add "Bx Slider" support for website. To diplay slider on front-end use shortcode <b>[bx-slider]</b>', 'admin-customization' ),
+			'fields'				=> array(
+				array(
+					'id' 			=> 'enable_slider',
+					'label'			=> __( 'Enable Slider', 'admin-customization' ),
+					'description'	=> __( 'Enable or disable <b>Slider</b> support.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( true => 'Yes', false => 'No'),
+					'default'		=> 'no'
+				),
+				array(
+					'id' 			=> 'mode_slider',
+					'label'			=> __( 'Mode of Slider', 'admin-customization' ),
+					'description'	=> __( 'Enable or disable <b>Slider</b> support.', 'admin-customization' ),
+					'type'			=> 'select',
+					'options'		=> array( 'horizontal' => 'Horizontal', 'vertical' => 'Vertical', 'fade' => 'Fade'),
+					'default'		=> 'horizontal'
+				),
+				array(
+					'id' 			=> 'autoPlay_slider',
+					'label'			=> __( 'Auto Play Slider', 'admin-customization' ),
+					'description'	=> __( 'Auto play slider images.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+					'default'		=> 'no'
+				),
+				array(
+					'id' 			=> 'display_captions_on_slider',
+					'label'			=> __( 'Display Image Captions', 'admin-customization' ),
+					'description'	=> __( 'Display image captions on footer.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+					'default'		=> 'no'
+				),
+				array(
+					'id' 			=> 'pager_slider',
+					'label'			=> __( 'Display Pagination', 'admin-customization' ),
+					'description'	=> __( 'Display pagination dots.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+					'default'		=> 'no'
+				),
+				array(
+					'id' 			=> 'autoControls_slider',
+					'label'			=> __( 'Display Controls Slider', 'admin-customization' ),
+					'description'	=> __( 'Display slider controls.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+					'default'		=> 'no'
+				),
+				array(
+					'id' 			=> 'speed_slider',
+					'label'			=> __( 'Slider Speed', 'admin-customization' ),
+					'description'	=> __( '1 Sec = <b>100</b>.', 'admin-customization' ),
+					'type'			=> 'number',
+					'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+					'default'		=> '300'
+				),
+
+			)
+		);
+
 		$settings['as-google-services'] = array(
 			'title'					=> __( 'Google Services', 'admin-customization' ),
 			'description'			=> __( 'Enable Google service on website, like - Google Webmaster, Analytics, reCAPTCHA', 'admin-customization' ),
@@ -476,6 +560,8 @@ class Admin_Customization_Settings {
 				)
 			)
 		);
+
+
 
 		$settings = apply_filters( $this->parent->_token . '_settings_fields', $settings );
 
@@ -646,13 +732,33 @@ class Admin_Customization_Settings {
 
 	/*
 	 * Change logo of WP login Screen
-	 */
+	*/
+	function custom_login_screen() {
+		$bgFileNo = rand(1,2); // Randomly change login screen bg image
+		?>
+		<style type="text/css">
+			.login {
+				font-size: 16px;
+				letter-spacing: 1px;
+				text-shadow: -2px 2px 2px rgba(0,0,0, 0.3);
+				background-position: center center;
+				background-image: url(<?php echo plugin_dir_url( __FILE__ );?>../assets/images/admin-login-screen-bg-<?php echo $bgFileNo; ?>.png);
+			}
+
+		</style>
+	<?php
+	}
+
+	/*
+	 * Change logo of WP login Screen logo
+	*/
 	function custom_login_logo() {
 		$devLogoId = get_site_option($this->base.'developer_logo_image');
 		if(empty($devLogoId)) {
-			return;
+			$devLogoUrl = plugin_dir_url(__FILE__) . '../assets/images/developer-logo.png';
+		} else {
+			$devLogoUrl = array_shift(wp_get_attachment_image_src($devLogoId, 'full' ));
 		}
-		$devLogoUrl = array_shift(wp_get_attachment_image_src($devLogoId, 'full' ));
 		?>
 	    <style type="text/css">
 	        #login h1 a, .login h1 a {
@@ -661,11 +767,13 @@ class Admin_Customization_Settings {
 	            background-size:auto;
 	            background-position: center center;
 	            background-image: url(<?php echo $devLogoUrl ?>);
-	            background-color: #fff;
+	            background-color: #000;
+	            border: 1px solid #fff;
 	            box-shadow: 0 -8px 6px -6px black;
 	        }
 	    </style>
 	<?php }
+
 
 	 /*
 	 * Change logo URL on WP login Screen
@@ -762,10 +870,10 @@ class Admin_Customization_Settings {
 	    			$devWebsite = get_bloginfo('url');
 	    		}
 	    	?>
-		    <ul>
-		    	<li>Phone : <a href="tel:<?php echo $devContactNoHref; ?>"><?php echo $devContactNo ?></a></li>
-		    	<li>Email : <a href="mailto:<?php echo $devEmail; ?>"><?php echo $devEmail; ?></a></li>
-		    	<li>Website : <a href="<?php echo $devWebsite; ?>"><?php echo $devWebsite; ?></a></li>
+		    <ul class="wp-login-footer">
+		    	<li id="phone">Phone : <a href="tel:<?php echo $devContactNoHref; ?>"><?php echo $devContactNo ?></a></li>
+		    	<li id="email">Email : <a href="mailto:<?php echo $devEmail; ?>"><?php echo $devEmail; ?></a></li>
+		    	<li id="website">Website : <a href="<?php echo $devWebsite; ?>"><?php echo $devWebsite; ?></a></li>
 		    </ul>
 	    </div>
 	<?php }
