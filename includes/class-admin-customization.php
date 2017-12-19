@@ -77,6 +77,14 @@ class Admin_Customization {
 	public $script_suffix;
 
 	/**
+	 * Get the Bx Slider display permissions.
+	 * @var     string
+	 * @access  public
+	 * @since   1.0.0
+	 */
+	public $slider_enabled;
+
+	/**
 	 * Constructor function.
 	 * @access  public
 	 * @since   1.0.0
@@ -94,15 +102,37 @@ class Admin_Customization {
 
 		$this->script_suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
+		$this->slider_enabled = get_option( 'admin_customization_enable_slider');	// Setup a global var for getting Slider display permissions
+
 		register_activation_hook( $this->file, array( $this, 'install' ) );
 
 		// Load frontend JS & CSS
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ), 10 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10 );
 
+
+		if($this->slider_enabled == TRUE) {	// Will add bx slider lib only if slider is enable from admin area
+			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts_for_bx_slider' ), 10 );
+			add_action('wp_footer', array( $this, 'define_bx_slider_properties'));
+
+		}
+		add_shortcode('bx-slider', array( $this, 'render_bx_slider'));
+
 		// Load admin JS & CSS
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 10, 1 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ), 10, 1 );
+
+		// Remove Welcome Panel from WordPress Dashboard
+		remove_action('welcome_panel', 'wp_welcome_panel');
+		// Remove Welcome Panel from WordPress Dashboard
+
+		// function remove_activity_dashboard_widget() {
+		//     remove_meta_box( 'dashboard_activity', 'dashboard', 'side' );
+		// }
+
+		// // Hook into the 'wp_dashboard_setup' action to register our function
+		// add_action('wp_dashboard_setup', 'remove_activity_dashboard_widget' );
+
 
 		// Load API for generic admin functions
 		if ( is_admin() ) {
@@ -156,7 +186,10 @@ class Admin_Customization {
 	 */
 	public function enqueue_styles () {
 		wp_register_style( $this->_token . '-frontend', esc_url( $this->assets_url ) . 'css/frontend.css', array(), $this->_version );
+		wp_register_style( $this->_token . '-font-awesome', esc_url( $this->assets_url ) . 'css/font-awesome.min.css', array(), $this->_version );
+
 		wp_enqueue_style( $this->_token . '-frontend' );
+		wp_enqueue_style( 'font-awesome' );
 	} // End enqueue_styles ()
 
 	/**
@@ -169,6 +202,8 @@ class Admin_Customization {
 		wp_register_script( $this->_token . '-frontend', esc_url( $this->assets_url ) . 'js/frontend' . $this->script_suffix . '.js', array( 'jquery' ), $this->_version );
 		wp_enqueue_script( $this->_token . '-frontend' );
 	} // End enqueue_scripts ()
+
+
 
 	/**
 	 * Load admin CSS.
@@ -297,6 +332,87 @@ class Admin_Customization {
 
 	}
 	/* Remove Comments */
+
+	/**
+	 * Load frontend Javascript for bx Slider.
+	 * @access  public
+	 * @since   1.0.0
+	 * @return  void
+	 */
+	public function enqueue_scripts_for_bx_slider () {
+		wp_register_script( $this->_token . '-bxslider', esc_url( $this->assets_url ) . 'js/jquery.bxslider.js', array( 'jquery' ), $this->_version );
+		wp_enqueue_script( $this->_token . '-bxslider' );
+
+		// $slider_params = get_option( 'admin_customization_display_captions_on_slider');
+
+		// wp_localize_script( $this->_token . '-bxslider', 'sliderParams', $slider_params );
+	} // End enqueue_scripts ()
+
+
+	/**
+	 * Load bx Slider for shortcode [bx-slider]
+	 * @access  public
+	 * @since   1.0.0
+	 * @return  void
+	 */
+	//
+	public function render_bx_slider() {
+		if($this->slider_enabled == TRUE) {
+			$sliderArg = array(
+				'post_type' => 'slide'						// Set post-type to 'slide'
+			);
+			$bxSlider = new WP_Query( $sliderArg ); 		// Store query data in var
+
+			if($bxSlider->have_posts()) : 					// If post found
+			$html = '<ul class="bxslider">';			// Setup main container for 'bx slider'
+
+				while ($bxSlider->have_posts()) : 		// #Start a loop to fetch each post
+				$bxSlider->the_post();	 			// Setup post data
+
+				$attachedImageId = get_post_thumbnail_id(get_the_ID());			// Get the img ID
+				$attachedImageSrc = wp_get_attachment_url($attachedImageId);	// Get img source
+				$imageHtml = '<img src="' . $attachedImageSrc . '" alt="' . get_the_title() . '" title="' . get_the_title() . '">';				// Setup img tag
+				$html .= '<li>'.$imageHtml.'</li>';								// Add each image in var
+
+				endwhile;								// #Exit from loop, when all post fetched
+
+			$html .= '</ul>';							// Close main container
+
+			endif;
+
+		} else {
+			$html = "Slider is disabled from backend.";										// Close 'if' condition
+		}
+		return $html;									// Return the var
+	}
+
+
+	function define_bx_slider_properties() {
+		$slider_auto_play = get_option( 'admin_customization_autoPlay_slider');
+		$slider_mode = get_option( 'admin_customization_mode_slider');
+		$slider_auto_controls = get_option( 'admin_customization_autoControls_slider');
+		$slider_speed = get_option( 'admin_customization_speed_slider');
+		$slider_pager = get_option( 'admin_customization_pager_slider');
+		$slider_captions = get_option( 'admin_customization_display_captions_on_slider');
+
+		?>
+		<script>
+			jQuery(document).ready(function ($) {
+			    $('.bxslider').bxSlider({	// Setup Bx slider
+			        auto: <?php echo $slider_auto_play ?>,
+			        mode: '<?php echo $slider_mode ?>',
+			        autoControls: <?php echo $slider_auto_controls ?>,
+			        speed: <?php echo $slider_speed ?>,
+			        stopAutoOnClick: true,
+			        pager: <?php echo $slider_pager ?>,
+			        captions: <?php echo $slider_captions ?>,
+			        slideWidth: 600
+			    });
+			});
+		</script>
+	<?php
+	}
+
 
 }
 
