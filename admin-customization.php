@@ -57,6 +57,53 @@ if(post_type_exists('slide') == FALSE && $enableSlider == TRUE)  {
 // Add custom post type (CPT) - Slider
 
 
+// Add custom post type (CPT) - Testimonials
+$enableTestimonials = Admin_Customization()->testimonials_enabled;					// If Slider 'option' is enable in Admin area
+if(post_type_exists('testimonial') == FALSE && $enableTestimonials == TRUE)  {
+	$supportsArr = array('title');
 
+	$addContentMetaBox = Admin_Customization()->testimonial_content_box;
+	$addFeatureImageMetaBox = Admin_Customization()->testimonial_featured_image_box;
+	// $testimonialOrganizationMetaBox = Admin_Customization()->testimonial_featured_image_box;
+
+	if($addContentMetaBox == TRUE) {
+		array_push($supportsArr, 'editor');
+	}
+
+	if($addFeatureImageMetaBox == TRUE) {
+		array_push($supportsArr, 'thumbnail');
+	}
+
+
+	Admin_Customization()->register_post_type(
+		'testimonial',
+		__( 'Testimonials', 'as-admin-customization' ),
+		__( 'Testimonial', 'as-admin-customization' ),
+		'',
+		array(
+			'supports' => $supportsArr
+		)
+	);
+}
+// Add custom post type (CPT) - Testimonials
+
+
+// Add custom post type (CPT) - FAQ
+$enableFaq = Admin_Customization()->faq_enabled;					// If FAQs 'option' is enable in Admin area
+if(post_type_exists('faq') == FALSE && $enableFaq == TRUE)  {
+	$supportsArr = array('title', 'editor');
+
+
+	Admin_Customization()->register_post_type(
+		'faq',
+		__( 'FAQs', 'as-admin-customization' ),
+		__( 'FAQ', 'as-admin-customization' ),
+		'',
+		array(
+			'supports' => $supportsArr
+		)
+	);
+}
+// Add custom post type (CPT) - FAQ
 
 // Remove Welcome Panel from WordPress Dashboard
