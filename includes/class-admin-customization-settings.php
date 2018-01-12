@@ -72,10 +72,10 @@ class Admin_Customization_Settings {
 		add_action( 'init' , array( $this, 'login_checked_remember_me' ) );
 
 		// Redirect general user to public view
-		add_filter('login_redirect', array($this, 'my_loginredrect'), 10, 3);
+		add_filter('login_redirect', array($this, 'loginRedirect'), 10, 3);
 
 		// Remove lost your password link from login screen
-		add_filter( 'gettext', array($this, 'remove_lostpassword_text' ));
+		add_filter( 'gettext', array($this, 'remove_lost_password_text' ));
 
 		// Add extra content in header of wp login screen
 		add_action('login_header',array($this, 'login_form_header'));
@@ -366,7 +366,7 @@ class Admin_Customization_Settings {
 
 		$settings['as-slider'] = array(
 			'title'					=> __( 'Slider', 'admin-customization' ),
-			'description'			=> __( 'Add "Bx Slider" support for website. To diplay slider on front-end use shortcode <b>[bx-slider]</b>', 'admin-customization' ),
+			'description'			=> __( 'Add "Bx Slider" support for website. To display slider on front-end use shortcode <b>[bx-slider]</b>', 'admin-customization' ),
 			'fields'				=> array(
 				array(
 					'id' 			=> 'enable_slider',
@@ -428,6 +428,70 @@ class Admin_Customization_Settings {
 			)
 		);
 
+		$settings['as-testimonials'] = array(
+			'title'					=> __( 'Testimonial', 'admin-customization' ),
+			'description'			=> __( "Add 'testimonials' section for website. To diplay client's testimonials on website by using shortcode <b>[testimonials]</b>", 'admin-customization' ),
+			'fields'				=> array(
+				array(
+					'id' 			=> 'enable_testimonials',
+					'label'			=> __( 'Enable Testimonials', 'admin-customization' ),
+					'description'	=> __( 'Enable or disable <b>Testimonials</b> support.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 1 => 'Yes', 0 => 'No'),
+					'default'		=> 'no'
+				),
+				array(
+					'id' 			=> 'testimonial_content_box',
+					'label'			=> __( 'Content Box', 'admin-customization' ),
+					'description'	=> __( 'Display Content Box.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+					'default'		=> 'no'
+				),
+				array(
+					'id' 			=> 'testimonial_featured_image',
+					'label'			=> __( 'Featured Image', 'admin-customization' ),
+					'description'	=> __( 'Display Featured Image.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+					'default'		=> 'no'
+				)
+
+			)
+		);
+
+		$settings['as-faq'] = array(
+			'title'					=> __( 'FAQ', 'admin-customization' ),
+			'description'			=> __( "Add 'FAQ' section for website. To display FAQ on website by using shortcode <b>[faq]</b>", 'admin-customization' ),
+			'fields'				=> array(
+				array(
+					'id' 			=> 'enable_faq',
+					'label'			=> __( 'Enable FAQ', 'admin-customization' ),
+					'description'	=> __( 'Enable or disable <b>FAQs</b> support.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 1 => 'Yes', 0 => 'No'),
+					'default'		=> 'no'
+				),
+				// array(
+				// 	'id' 			=> 'faq_content_box',
+				// 	'label'			=> __( 'Content Box', 'admin-customization' ),
+				// 	'description'	=> __( 'Display Content Box.', 'admin-customization' ),
+				// 	'type'			=> 'radio',
+				// 	'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+				// 	'default'		=> 'no'
+				// ),
+				// array(
+				// 	'id' 			=> 'testimonial_featured_image',
+				// 	'label'			=> __( 'Featured Image', 'admin-customization' ),
+				// 	'description'	=> __( 'Display Featured Image.', 'admin-customization' ),
+				// 	'type'			=> 'radio',
+				// 	'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+				// 	'default'		=> 'no'
+				// )
+
+			)
+		);
+
 		$settings['as-google-services'] = array(
 			'title'					=> __( 'Google Services', 'admin-customization' ),
 			'description'			=> __( 'Enable Google service on website, like - Google Webmaster, Analytics, reCAPTCHA', 'admin-customization' ),
@@ -481,6 +545,20 @@ class Admin_Customization_Settings {
 					//'placeholder'	=> __( 'no-reply@domainname.com', 'admin-customization' )
 				),
 				array(
+					'id' 			=> 'secondary_logo',
+					'label'			=> __( 'Secondary Logo' , 'admin-customization' ),
+					'type'			=> 'image',
+					'description'	=> __( 'Add another logo variante', 'admin-customization' ),
+					'placeholder'	=> __( 'xxxx-xxx-xxx', 'admin-customization' )
+				),
+				array(
+					'id' 			=> 'contact_no',
+					'label'			=> __( 'Contact No' , 'admin-customization' ),
+					'type'			=> 'text',
+					'default'		=> '',
+					'placeholder'	=> __( 'xxxx-xxx-xxx', 'admin-customization' )
+				),
+				array(
 					'id' 			=> 'disable_updates_notifications',
 					'label'			=> __( 'Disable Updates Notifications', 'admin-customization' ),
 					'description'	=> __( 'Disable "Updates Avilable" Notifications for Wordpress Core, Themes & Plugins.', 'admin-customization' ),
@@ -488,6 +566,38 @@ class Admin_Customization_Settings {
 					'options'		=> array( 'no' => 'No', 'yes' => 'Yes'),
 					'default'		=> 'no'
 				),
+			)
+		);
+
+		$settings['as-forms'] = array(
+			'title'					=> __( 'Forms', 'admin-customization' ),
+			'description'			=> __( "Add custom Registration, Login, Forget Password Forms by shortcode." ),
+			'fields'				=> array(
+				array(
+					'id' 			=> 'enable_custom_forms',
+					'label'			=> __( 'Enable Custom Forms', 'admin-customization' ),
+					'description'	=> __( 'Enable or disable <b>Custom Forms</b> support.', 'admin-customization' ),
+					'type'			=> 'radio',
+					'options'		=> array( 1 => 'Yes', 0 => 'No'),
+					'default'		=> 'no'
+				),
+				// array(
+				// 	'id' 			=> 'testimonial_content_box',
+				// 	'label'			=> __( 'Content Box', 'admin-customization' ),
+				// 	'description'	=> __( 'Display Content Box.', 'admin-customization' ),
+				// 	'type'			=> 'radio',
+				// 	'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+				// 	'default'		=> 'no'
+				// ),
+				// array(
+				// 	'id' 			=> 'testimonial_featured_image',
+				// 	'label'			=> __( 'Featured Image', 'admin-customization' ),
+				// 	'description'	=> __( 'Display Featured Image.', 'admin-customization' ),
+				// 	'type'			=> 'radio',
+				// 	'options'		=> array( 'true' => 'Yes', 'false' => 'No'),
+				// 	'default'		=> 'no'
+				// )
+
 			)
 		);
 
@@ -802,10 +912,10 @@ class Admin_Customization_Settings {
 	 * Make "remember me" as checked always
 	 */
 	public function login_checked_remember_me() {
-		add_filter( 'login_footer', array($this, 'rememberme_checked') );
+		add_filter( 'login_footer', array($this, 'remember_me_checked') );
 	}
 
-	public function rememberme_checked() {
+	public function remember_me_checked() {
 		echo "<script>document.getElementById('rememberme').checked = true;</script>";
 	}
 
@@ -813,7 +923,7 @@ class Admin_Customization_Settings {
 	/*
 	 * Redirect user to public view if they are not "Administrator"
 	 */
-	public function my_loginredrect( $redirect_to, $request, $user ) {
+	public function loginRedirect( $redirect_to, $request, $user ) {
 		  if ( isset( $user->roles ) && is_array( $user->roles ) ) {
 		    if( in_array('administrator', $user->roles)) {
 		      	return admin_url();
@@ -828,7 +938,7 @@ class Admin_Customization_Settings {
 	/*
 	 * Remove Lost Password link from login screen
 	 */
-	public function remove_lostpassword_text ( $text ) {
+	public function remove_lost_password_text ( $text ) {
 		if ($text == 'Lost your password?'){
 			$text = '';
 		}
@@ -1103,6 +1213,8 @@ class Admin_Customization_Settings {
 	    $phpmailer->From = $senderEmailId;
 	    $phpmailer->FromName = $senderName;
 	}
+
+
 
 
 }
