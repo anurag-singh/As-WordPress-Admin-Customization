@@ -434,7 +434,10 @@ class Admin_Customization {
 					$bxSlider->the_post();	 			// Setup post data
 
 					$attachedImageId = get_post_thumbnail_id(get_the_ID());			// Get the img ID
-					$attachedImageSrc = array_shift(wp_get_attachment_image_src( $attachedImageId, 'full' ));	// Get img source
+
+					$attachedImageSrc = wp_get_attachment_image_src( $attachedImageId, 'full' );	// Get img source
+
+					$attachedImageSrc = array_shift($attachedImageSrc);
 
 					$html .= '<li style="background: url('. $attachedImageSrc . ') no-repeat;">';
 					// $html .= '<div class="slider-title">';
@@ -478,7 +481,6 @@ class Admin_Customization {
 			        speed: <?php echo $slider_speed ?>,
 			        stopAutoOnClick: true,
 			        pager: <?php echo $slider_pager ?>,
-			        // captions: <?php echo $slider_captions ?>,
 			    });
 			});
 		</script>
@@ -617,6 +619,9 @@ class Admin_Customization {
 	 * @return  void
 	 */
 	public function display_register_form(){
+		if(is_user_logged_in()) : 				// If user not logged in
+			wp_safe_redirect( home_url( 'Dashboard' ) );	// Send them to dashboard page
+		endif;
 		?>
 		<div class="card">
 			<div class="card-header text-center">
@@ -704,7 +709,14 @@ class Admin_Customization {
 			$userData['user_email'] = $_POST['register_user_email'];
 			$userData['user_pass'] = $_POST['register_user_password'];
 			$userData['user_login'] = $userData['first_name'] . ' ' . $userData['last_name'];
-			$userData['role'] = 'Subscriber';
+
+			global $wp_roles;
+			$roles = $wp_roles->get_names();
+			if(in_array("Member", $roles)){					// If user role 'member' found
+				$userData['role'] = 'member';				// then set role to 'member'
+			} else {
+				$userData['role'] = 'subscriber';			// then set role to 'subscriber'
+			}
 
 
 			if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register_user_email']) && isset($_POST['register_user_password']) ) { // Server side validation => TRUE
@@ -712,25 +724,55 @@ class Admin_Customization {
 					$newUserID = wp_insert_user( $userData );
 
 					if ( ! is_wp_error( $newUserID ) ) {
-					    $response = array(
-			                'status' => 1,
-			                'msg'=> "You have successfully register on our site."
-			            );
+			            $statusCode = 1;
+						$msg = 'You have successfully register on our site.';
 					} else {
+			            $statusCode = 0;
 						$msg = $newUserID->get_error_message();
-						$response = array(
-			                'status' => 0,
-			                'msg' => $newUserID->get_error_message()
-			            );
+					}
+
+					if(! is_wp_error( $newUserID )) {
+						// Send new user to a notification email along with password
+						$sender = get_option('blogname');
+						$senderEmail = get_option('admin_email');
+
+						$to = $userData['user_email'];
+						$subject = 'Thanks for register with us!';
+
+						$message = 'Hello ' . $userData['last_name'] .',<br/><br/>';
+						$message .= 'We warmly welcome you for register with us.<br/><br/>';
+						$message .= 'Kindly note beneath mentioned login credentials for further use: <br/><br/>';
+						$message .= '<b>User Name:</b> '. $userData['user_email'] .'<br/>';
+						$message .= '<b>Password:</b> '. $userData['user_pass'] .'<br/><br/><br/>';
+						$message .= 'Thanks';
+
+						$header = 'MIME-Version: 1.0' . "\r\n";
+						$header .= 'Content-Type: text/html; charset=UTF-8' . "\r\n";
+						$header .= "X-Mailer: PHP \r\n";
+						$header .= 'From: '.$sender.' < '.$senderEmail.'>' . "\r\n";
+
+						$mail = wp_mail( $to, $subject, $message, $header);
+
+						if( $mail ) {
+							$statusCode = 3;;
+							$msg = 'Check your email address for you new password.';
+						} else {
+							$statusCode = 4;;
+							$msg = 'Unable to send email - ' . $to . ' / ' . $subject . ' / ' . $message;
+						}
+						// Send new user to a notification email along with password
 					}
 
 
-			} else {																			// Server side validation => FALSE
-				$response = array(
-		                    'status' => 0,
-		                    'msg'=> "Unable to fetch form's value."
-		                    );
+			} else {
+				$statusCode = 5;
+				$msg = "Unable to fetch form's value.";
 			}
+
+			$response = array(
+		                    'status' => $statusCode,
+		                    'msg'=> $msg
+		                    );
 
 			echo json_encode($response);
 
@@ -745,7 +787,9 @@ class Admin_Customization {
 		 * @return  void
 		 */
 		public function display_login_form(){
-			if(!is_user_logged_in()) : 				// If user not logged in
+			if(is_user_logged_in()) : 				// If user not logged in
+				wp_safe_redirect( home_url( 'Dashboard' ) );	// Send them to dashboard page
+			endif;
 		?>
 		<div class="card">
 			<div class="card-header text-center">
@@ -779,8 +823,6 @@ class Admin_Customization {
 		</div>
 
 		<?php
-			else : echo "User already logged In!";
-			endif;
 		}
 
 		/**
@@ -839,7 +881,9 @@ class Admin_Customization {
 		 * @return  void
 		 */
 		public function display_forget_password_form(){
-			if(!is_user_logged_in()) : 				// If user not logged in
+			if(is_user_logged_in()) : 				// If user not logged in
+				wp_safe_redirect( home_url( 'Dashboard' ) );	// Send them to dashboard page
+			endif;
 		?>
 			<div class="card">
 				<div class="card-header text-center">
@@ -865,10 +909,7 @@ class Admin_Customization {
 
 				</div>
 			</div>
-
 		<?php
-			else : echo "User already logged In!";
-			endif;
 		}
 
 
@@ -903,7 +944,7 @@ class Admin_Customization {
 		                )
 		            );
 
-		             // if  update user return true then lets send user an email containing the new password
+		            // if  update user return true then lets send user an email containing the new password
 		            if( $update_user ) {
 		                $to = $userEmail;
 		                $subject = 'Your new password';
