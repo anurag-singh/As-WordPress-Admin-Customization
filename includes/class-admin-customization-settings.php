@@ -1185,22 +1185,27 @@ class Admin_Customization_Settings {
 
 		if($smtpSupport == 'yes') {
 
-			$smtpHost = get_option($this->base.'smtp_host');
-			$smtpPort = get_option($this->base.'smtp_port');
-			$smtpUserName = get_option($this->base.'smtp_username');
-			$smtpPassword = get_option($this->base.'smtp_password');
-
-			$smtpSecure = get_option($this->base.'smtp_secure');
-			$senderEmailId = get_option($this->base.'from_email_id');
-			$senderName = get_option($this->base.'from_email_name');
-
-			add_action( 'phpmailer_init', $this->use_phpmailer );
+			add_action( 'phpmailer_init', array($this, 'use_phpmailer'), 10, 1 );
+			add_action('wp_mail_failed', array($this, 'log_mailer_errors'), 10, 1);
 		}
 	}
 
 
 	function use_phpmailer( $phpmailer ) {
+		$smtpHost = get_option($this->base.'smtp_host');
+		$smtpPort = get_option($this->base.'smtp_port');
+		$smtpUserName = get_option($this->base.'smtp_username');
+		$smtpPassword = get_option($this->base.'smtp_password');
+
+		$smtpSecure = get_option($this->base.'smtp_secure');
+		$senderEmailId = get_option($this->base.'from_email_id');
+		$senderName = get_option($this->base.'from_email_name');
+
+		// print_r($phpmailer);
+
 	    $phpmailer->isSMTP();
+	    $phpmailer->SMTPDebug = 2; // write 0 if you don't want to see client/server communication in page
+  		$phpmailer->CharSet  = "utf-8";
 	    $phpmailer->Host = $smtpHost;
 	    $phpmailer->SMTPAuth = true; // Force it to use Username and Password to authenticate
 	    $phpmailer->Port = $smtpPort;
@@ -1214,7 +1219,20 @@ class Admin_Customization_Settings {
 	    $phpmailer->FromName = $senderName;
 	}
 
+// 	function mailer_config(PHPMailer $mailer){
+//   $mailer->IsSMTP();
+//   $mailer->Host = "mail.telemar.it"; // your SMTP server
+//   $mailer->Port = 25;
+//   $mailer->SMTPDebug = 2; // write 0 if you don't want to see client/server communication in page
+//   $mailer->CharSet  = "utf-8";
+// }
 
 
-
+	function log_mailer_errors(){
+		$fn = ABSPATH . '/mail.log'; // say you've got a mail.log file in your server root
+		//$fn = plugin_dir_url(__FILE__) . '../logs/mail.log';
+		$fp = fopen($fn, 'a');
+		fputs($fp, "Mailer Error: " . $phpmailer->ErrorInfo ."\n");
+		fclose($fp);
+	}
 }
