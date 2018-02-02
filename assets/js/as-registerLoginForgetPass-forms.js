@@ -6,7 +6,7 @@ jQuery(document).ready(function($){
 
 
 	// Login form
-	jQuery("#as-login").submit(function(){
+	jQuery("#as-login").submit(function(event){
 		event.preventDefault();
 		$("#as-login").validate({
 			rules: {
@@ -75,7 +75,7 @@ jQuery(document).ready(function($){
 
 
 	// Forget password form
-	jQuery("#as-forget-password").submit(function(){
+	jQuery("#as-forget-password").submit(function(event){
 		event.preventDefault();
 		$("#as-forget-password").validate({
 			rules: {
@@ -140,7 +140,7 @@ jQuery(document).ready(function($){
 
 
 	// Register form
-	$("#as-register").submit(function(){
+	$("#as-register").submit(function(event){
 		event.preventDefault();
 		$("#as-register").validate({
 

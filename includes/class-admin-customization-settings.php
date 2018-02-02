@@ -1219,15 +1219,6 @@ class Admin_Customization_Settings {
 	    $phpmailer->FromName = $senderName;
 	}
 
-// 	function mailer_config(PHPMailer $mailer){
-//   $mailer->IsSMTP();
-//   $mailer->Host = "mail.telemar.it"; // your SMTP server
-//   $mailer->Port = 25;
-//   $mailer->SMTPDebug = 2; // write 0 if you don't want to see client/server communication in page
-//   $mailer->CharSet  = "utf-8";
-// }
-
-
 	function log_mailer_errors(){
 		$fn = ABSPATH . '/mail.log'; // say you've got a mail.log file in your server root
 		//$fn = plugin_dir_url(__FILE__) . '../logs/mail.log';

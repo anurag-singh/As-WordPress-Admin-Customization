@@ -554,11 +554,13 @@ class Admin_Customization {
 				$faqs->the_post();	 			// Setup post data
 
 				$html .= '<div class="card">';
-			    $html .= '<div class="card-header" role="tab" id="headingOne">';
+			    $html .= '<div class="card-header" role="tab" id="heading'. $faqCounter .'">';
 			    $html .= '<h5 class="mb-0">';
-			    $html .= '<a data-toggle="collapse" href="#collapse'.$faqCounter .'" role="button" aria-expanded="true" aria-controls="collapse'.$faqCounter .'">';
+			    //$html .= '<a data-toggle="collapse" href="#collapse'. $faqCounter .'" role="button" aria-expanded="true" aria-controls="collapse'. $faqCounter .'">';
+			    $html .= '<button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse'. $faqCounter .'" aria-expanded="true" aria-controls="collapse'. $faqCounter .'">';
+
 				$html .= get_the_title();
-				$html .= '</a>';
+				$html .= '</button>';
 				$html .= '</h5>';
 				$html .= '</div>';
 
@@ -568,7 +570,7 @@ class Admin_Customization {
 				// 	$html .= '<div id="collapse' .$faqCounter . '" class="collapse" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion">';
 
 				// }
-				$html .= '<div id="collapse' .$faqCounter . '" class="collapse" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion">';
+				$html .= '<div id="collapse' . $faqCounter . '" class="collapse" role="tabpanel" aria-labelledby="heading'. $faqCounter .'" data-parent="#accordion">';
 				$html .= '<div class="card-body">';
 				$html .= get_the_content();
 				$html .= '</div>';
@@ -680,7 +682,7 @@ class Admin_Customization {
 							<button type="submit" class="btn btn-primary btn-block btn-lg" tabindex="7">Register</button>
 						</div>
 						<div class="col-xs-12 col-md-6">
-							<a href="#" class="btn btn-success btn-block btn-lg">Sign In</a>
+							<a href="<?php echo get_permalink( get_page_by_title( 'Login' )); ?>" class="btn btn-success btn-block btn-lg">Sign In</a>
 						</div>
 					</div>
 				</form>
@@ -1044,3 +1046,8 @@ class Admin_Customization {
 		global $wp_admin_bar;
 		$wp_admin_bar->remove_menu('comments');
 	}
+
+
+
+
+
