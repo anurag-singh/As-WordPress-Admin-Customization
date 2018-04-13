@@ -57,12 +57,11 @@ class As_Wp_Admin_Customization_Public {
 		$isSliderEnable = $admin_customization['slider-enabled'];
 
 		if($isSliderEnable == TRUE) {
-			echo '<pre>................';
-			print_r($isSliderEnable);
+			// echo '<pre>................';
+			// print_r($isSliderEnable);
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts_for_bx_slider' ), 10 );
 			add_action('wp_footer', array( $this, 'define_bx_slider_properties'));
 		}
-
 
 	}
 
@@ -134,5 +133,93 @@ class As_Wp_Admin_Customization_Public {
 		global $post;
 		print_r($post);
 	}
+
+	// Display HTML SiteMap with shortcode "html_sitemap"
+	function as_display_html_sitemap( $pageArgArr ) {
+		if ( class_exists( 'WooCommerce' ) ) { // If woocommerce is activated, remove these pages
+			$pageToBeExclude = array('Cart', 'Checkout', 'Shipping Addresses', 'My Account', 'Payment', 'Thank you', 'Sitemap');
+
+			foreach ($pageToBeExclude as $page) {
+				$pageObj = get_page_by_title( $page );
+
+				$pageIdsTobeExclude[] = $pageObj->ID;
+			}
+
+			// Convert array into string
+			$pageIdsTobeExclude = implode(',', $pageIdsTobeExclude);
+		} else {
+			$pageIdsTobeExclude = '';
+		}
+
+	    $pageArgArr = shortcode_atts(array(
+            'child_of' => '0',
+            'authors' => '',
+            'date_format' => '',
+            'depth' => '',
+            'echo' => 'true',
+            'exclude' => $pageIdsTobeExclude,
+            'include' => '',
+            'link_after' => '',
+            'link_after' => '',
+            'post_type' => 'page',
+            'post_status' => 'publish',
+            'show_date' => '',
+            'sort_column' => '',
+            'title_li' => '<h2>' . __( 'Pages', 'textdomain' ) . '</h2>',
+            'item_spacing' => '',
+            'walker' => ''
+	            ), $pageArgArr, 'html_sitemap');
+
+	    // Display site's pages
+	    echo "<div class='html-sitemap-links pages'><ul class='html-sitemap-links'>";
+	    wp_list_pages( $pageArgArr );
+	    echo "</div></ul>";
+
+	    // Display site's blog categories
+	    echo "<div class='html-sitemap-links categories'><ul>";
+	    wp_list_categories( array(
+	        'orderby' => 'name',
+	        'exclude' => 1,
+	        //'include' => array( 3, 5, 9, 16 )
+	        'title_li' => '<h2>' . __( 'Blog\'s Categories', 'textdomain' ) . '</h2>'
+	    ) );
+	    echo "</div></ul>";
+
+	    // if Woocommerce Activated
+	    if ( class_exists( 'WooCommerce' ) ) {
+	    	// Display Woocommerce categories,
+		  	echo "<div class='html-sitemap-links product-categories'><ul>";
+			    wp_list_categories( array(
+			    	'taxonomy' => 'product_cat',
+			        'orderby' => 'name',
+			        'exclude' => 1,
+			        //'include' => array( 3, 5, 9, 16 )
+			        'title_li' => '<h2>' . __( 'Product\'s Categories', 'textdomain' ) . '</h2>'
+			    ) );
+		   	echo "</div></ul>";
+
+		   	// Display Woocommerce categories,
+		  	echo "<div class='html-sitemap-links products'><ul>";
+		  	echo '<li><h2>Products</h2>';
+			    $args = array(
+			        'post_type'      => 'product',
+			        'posts_per_page' => -1,
+			    );
+
+			    $products = new WP_Query( $args );
+			    echo '<ul>';
+			    while ( $products->have_posts() ) : $products->the_post();
+			        global $product;
+			        echo '<li><a href="'.get_permalink().'">'.get_the_title().'</a></li>';
+			    endwhile;
+
+			    wp_reset_query();
+		   	echo "</ul></li>";
+		   	echo "</div></ul>";
+		}
+
+	}
+
+	// Display HTML SiteMap with shortcode "html_sitemap"
 
 }

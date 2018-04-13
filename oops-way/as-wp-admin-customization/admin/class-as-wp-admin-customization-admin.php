@@ -71,6 +71,9 @@ class As_Wp_Admin_Customization_Admin {
 		$googleServicesTabParentMenu = $this->setup_google_services_tab($parentMenu);
 		$this->setup_fields_for_google_services_tab ($googleServicesTabParentMenu);
 
+		$htmlSitemapTabParentMenu = $this->setup_html_sitemap_tab($parentMenu);
+		$this->setup_fields_for_html_sitemap_tab ($htmlSitemapTabParentMenu);
+
 		$subMenu = $this->setup_submenu($parentMenu);
 		$this->setup_tabs_for_sub_menu($subMenu);
 
@@ -727,14 +730,12 @@ class As_Wp_Admin_Customization_Admin {
 	}
 
 
-
 	/**
 	 * Create fields for custom tab in parent menu.
 	 *
 	 * @since    1.0.0
 	 */
 	function setup_fields_for_google_services_tab ($googleServicesTab) {
-
 		$google_webmaster				= 'Google Webmaster';
 		$google_analytics				= 'Google Analytics';
 		$google_recaptcha_site_key		= 'reCAPTCHA - (Site key)';
@@ -768,8 +769,58 @@ class As_Wp_Admin_Customization_Admin {
 			'name' => sanitize_title( $google_recaptcha_secret_key ),
 			'desc' => ' xxxxxxxxxxxxxxxxxx',
 		));
+	}
 
+	/**
+	 * Create custom tab for parent menu.
+	 *
+	 * @since    1.0.0
+	 */
+	function setup_html_sitemap_tab ($parentMenu) {
+		$custom_tab_title 	= 'HTML Sitemap';
 
+		// Creating tab with our custom wordpress menu
+		$loginScreenTab = new WordPressMenuTab(
+			array(
+				'title' => $custom_tab_title,
+				'slug'	=> sanitize_title( $custom_tab_title ),
+				 ),
+			$parentMenu
+		);
+
+		return $loginScreenTab;
+	}
+
+	/**
+	 * Create fields for custom tab in parent menu.
+	 *
+	 * @since    1.0.0
+	 */
+	function setup_fields_for_html_sitemap_tab ($htmlSitemapTab) {
+
+		$html_sitemap_enabled			= 'Html Sitemap Enabled';
+		$pages_to_exclude				= 'Html Sitemap Pages To Exclude';
+
+		//Add a field
+		$htmlSitemapTab->add_field(array(
+			'title' => $html_sitemap_enabled,
+			'name' => sanitize_title( $html_sitemap_enabled ),
+			'desc' => "Enable HTML Sitemap for website. Use shortcode - <b>[html_sitemap]</b>.",
+			'type' => 'radio',
+			'options' => array(
+				TRUE => 'Yes',
+				FALSE => 'No' )
+		));
+
+		//Add a field
+		$htmlSitemapTab->add_field(array(
+			'title' => $pages_to_exclude,
+			'name' => sanitize_title( $pages_to_exclude ),
+			'desc' => 'Page Title, which you want to exclude from sitemap. Write each name in seperated by new line.',
+			'type' => 'textarea',
+			'rows' => "10",
+			'cols' => "30"
+		));
 	}
 
 

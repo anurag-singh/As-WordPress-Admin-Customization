@@ -502,7 +502,9 @@ abstract class WordPressSettings {
 				<label for="<?php echo $name; ?>"><?php echo $title; ?></label>
 			</th>
 			<td>
-				<textarea name="<?php echo $name; ?>" id="<?php echo $name; ?>" placeholder="<?php echo $placeholder; ?>" ><?php echo $default; ?></textarea>
+				  <!-- <textarea name="message" rows="10" cols="30">The cat was playing in the garden.</textarea> -->
+
+				<textarea name="<?php echo $name; ?>" id="<?php echo $name; ?>" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" placeholder="<?php echo $placeholder; ?>" ><?php echo $default; ?></textarea>
 				<?php if( $desc != '' ) {
 					echo '<p class="description">' . $desc . '</p>';
 				}?>
